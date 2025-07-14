@@ -7,7 +7,20 @@ public class PowerUpRandomSpawner : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        spawnPowerUps();
+        try
+        {
+            spawnPowerUps();
+        }
+        // Catch any exceptions that may occur during the spawning process
+        catch (System.Exception e)
+        {
+            Debug.LogError("Error spawning power-ups: " + e.Message);
+        }
+
+        finally
+        {
+            Debug.Log("Power-up spawning process completed.");
+        }
     }
 
     void spawnPowerUps()
