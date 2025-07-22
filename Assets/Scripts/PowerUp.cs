@@ -24,4 +24,5 @@ public class PowerUp : MonoBehaviour // Inherit from MonoBehaviour to access Uni
             Destroy(gameObject);
         }
     }
+
 }
