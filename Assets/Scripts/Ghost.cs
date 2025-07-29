@@ -14,13 +14,19 @@ public class Ghost : MonoBehaviour
     [SerializeField] private float visionThreshold = 0.5f; //Dot product threshold to count as "being looked at"
     [SerializeField] private float rotationSpeed = 5f; //Speed of rotation towards the player
 
+    //Model Stuff
+    [Header("Model Settings")]
+    [SerializeField] private GameObject ghostModel; //Reference to the ghost model (if needed for future use)
+    [SerializeField] private SkinnedMeshRenderer ghostModelAlt;
+    [SerializeField] private float dissolveDuration = 2f;
+    private Material ghostMaterial;
+    private bool isDissolving = false;
+    private float dissolveAmount = 0f;
+
     [SerializeField] private float projectileFireRate = 4f;
     private float timeSinceLastFire = 0;
 
-    //Model stuff
-    //private SkinnedMeshRenderer skinRenderer;
-    //private Material ghostMaterial;
-    //private Color originalColor;
+   
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -28,26 +34,28 @@ public class Ghost : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         shoot = GetComponent<Shoot>();
-        //skinRenderer = GetComponentInChildren<SkinnedMeshRenderer>(); //Grab the SkinnedMeshRenderer from the ghost's mesh
 
-        //if (skinRenderer != null)
-        //{
-        //    ghostMaterial = skinRenderer.material;
-        //    originalColor = ghostMaterial.color;
-        //}
-        //else
-        //{
-        //    Debug.LogError("SkinnedMeshRenderer not found in children!");
-        //}
+        ghostMaterial = ghostModelAlt.material;
+        ghostMaterial.SetFloat("Dissolve", 0f);
 
-        //ghostMaterial = GetComponentInChildren<MeshRenderer>().material; //Grab the material from the ghost's mesh renderer
-        //originalColor = ghostMaterial.color;
     }
 
     // Update is called once per frame
     void Update()
     {
         CheckIfSeen();
+
+        if (isDissolving && dissolveAmount < 1f)
+        {
+            Debug.Log("Ghost is dissolving. Dissolve amount: " + dissolveAmount);
+            dissolveAmount += Time.deltaTime / dissolveDuration;
+            ghostMaterial.SetFloat("Dissolve", dissolveAmount);
+
+            if (dissolveAmount >= 1f)
+            {
+                isDissolving = false;
+            }
+        }
 
         if (!isSeen)
         {
@@ -58,12 +66,16 @@ public class Ghost : MonoBehaviour
                 Debug.Log("Firing projectile");
                 shoot.Fire(); //Fire a projectile
             }
+            ghostModel.SetActive(true); //Makes Ghost visible when not seen
 
 
         }
         else
         {
             StopMoving();
+            isDissolving = true;
+            Debug.Log("Dissolve triggered!");
+            ghostModel.SetActive(false); //Hide the ghost model when seen
         }
 
 
@@ -77,7 +89,6 @@ public class Ghost : MonoBehaviour
         RaycastHit hit;
 
         // Reset seen state
-        //SetOpacity(1f); //Make ghost fully opaque
         isSeen = false;
 
         if (Physics.Raycast(ray, out hit, detectionDistance))
@@ -87,7 +98,6 @@ public class Ghost : MonoBehaviour
                 float dot = Vector3.Dot(playerTransform.forward, directionToGhost);
                 if (dot > visionThreshold)
                 {
-                    //SetOpacity(0.3f); //Make ghost semi-transparent
                     isSeen = true;
                 }
             }

@@ -17,7 +17,7 @@ public class Enemy : MonoBehaviour
     void Update()
     {
 
-        Vector3 moveDirection = new Vector3(playerTransform.position.x - transform.position.x, 0, playerTransform.position.z - transform.position.z).normalized;
+        Vector3 moveDirection = new Vector3(playerTransform.position.x - transform.position.x, 0, playerTransform.position.z - transform.position.z).normalized; //Calculate the direction towards the player
         Vector3 moveVel = moveDirection * 5f; // Speed of the enemy
         moveVel.y = rb.linearVelocity.y;
 

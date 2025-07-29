@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEditor.Rendering.CameraUI;
 
@@ -26,21 +27,35 @@ public class Projectile : MonoBehaviour
         GetComponent<Rigidbody>().linearVelocity = velocity;
     }
 
-    public void OnCollisionEnter(Collision collision)
+    public void OnTriggerEnter(Collider collision)
     {
         if (type == ProjectileType.Enemy)
         {
             TestController player = collision.gameObject.GetComponent<TestController>();
             if (player != null)
             {
+                if (GameManager.endOfLevel) return;
+                player.Death();
+                Destroy(gameObject);
+            }
+        }
+
+        if (type == ProjectileType.Player)
+        {
+            Skeleton enemy = collision.gameObject.GetComponent<Skeleton>();
+            if (enemy != null)
+            {
                 Destroy(gameObject);
             }
         }
     }
 
+    
+
     public enum ProjectileType
     {
         Enemy,
+        Player,
     }
 
 }

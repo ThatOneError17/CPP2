@@ -3,6 +3,8 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.Animations;
+using System.Collections;
 
 public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 {
@@ -10,6 +12,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     InputSystem_Actions input;
     CharacterController controller;
     Camera mainCamera;
+    Animator anim;
 
     //Movement variables
     Vector2 direction;
@@ -17,19 +20,34 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     LayerMask enemyLayer;
 
+    private float curSpeed = 5.0f;
     [Header("Movement Settings")]
-    [SerializeField] private float speed = 10f;
+    [SerializeField] private float initSpeed = 5.0f; //Initialspeed of the character
+    [SerializeField] private float maxSpeed = 10.0f; //Speed of the character
+    [SerializeField] private float moveAccel = 1f; //Acceleration for movement
     [SerializeField] private float rotationSpeed = 5.0f;
+   
 
     //Jump variables
     [Header("Jump Settings")]
     [SerializeField] private float jumpHeight = 5f;
-    [SerializeField] private float timeToJumpApex = 1.0f; // Time to reach the apex of the jump
+    [SerializeField] private float timeToJumpApex = 1.0f; //Time to reach the apex of the jump
+
+    [Header("Weapon Settings")]
+    [SerializeField] private Transform weaponAttachPoint; //The point where the weapon will be attached to the player
+    [SerializeField] private GameObject kickHitBox; //The point where the kick hitbox will be attached to the player
+    WeaponBase weapon = null; //Reference to the weapon attached to the player
+
 
     //Gravity and velocity
     private float gravity; // Gravity value for the jump
     private float jumpVelocity; // Velocity when jumping
     bool jumpPressed = false; // Whether the jump button is pressed
+
+    bool canShoot = true; // Whether the player can shoot projectiles
+
+    //For shooting projectiles
+    private Shoot shoot;
 
     private void Awake()
     {
@@ -50,7 +68,9 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        shoot = GetComponent<Shoot>();
+        controller = GetComponent<CharacterController>();
+        anim = GetComponentInChildren<Animator>();
 
         try
         {
@@ -109,6 +129,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     private Vector3 ProjectedMoveDirection()
     {
+
         Vector3 cameraFwd = mainCamera.transform.forward;
         Vector3 cameraRight = mainCamera.transform.right;
 
@@ -123,8 +144,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     private void UpdateCharacterVelocity(Vector3 projectedMoveDirection)
     {
-        velocity.x = projectedMoveDirection.x * speed; //Set the x velocity based on the input direction and speed
-        velocity.z = projectedMoveDirection.z * speed; //Set the z velocity based on the input direction and speed
+        if (direction == Vector2.zero) curSpeed = initSpeed; //If no input, set speed to initial speed
+        else curSpeed = Mathf.MoveTowards(curSpeed, maxSpeed, moveAccel * Time.fixedDeltaTime); //If input, increase speed towards max speed
+
+        velocity.x = projectedMoveDirection.x * curSpeed; //Set the x velocity based on the input direction and speed
+        velocity.z = projectedMoveDirection.z * curSpeed; //Set the z velocity based on the input direction and speed
 
         if (!controller.isGrounded) velocity.y += gravity * Time.deltaTime; //Apply gravity if not grounded, is needed for CharacterController
         else velocity.y = CheckJump(); //Reset y velocity if grounded (Can't be 0)
@@ -133,6 +157,10 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     void Update()
     {
+        float speedRatio = curSpeed / maxSpeed; //Calculate speed ratio for animation
+        if (direction == Vector2.zero) speedRatio = 0.0f; //If no input, set speed ratio to 0
+        anim.SetFloat("curSpeed", speedRatio); //Set the speed parameter in the animator
+
         Ray newRay = new Ray(transform.position, transform.forward);
         RaycastHit hitInfo;
         Debug.DrawLine(transform.position, transform.position + (transform.forward * 10.0f), Color.red);
@@ -141,6 +169,14 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         {
             Debug.Log(hitInfo.transform.gameObject.name);
         }
+    }
+
+    public void Death() //Function to handle player death
+    {
+        Debug.Log("Player has died");
+        anim.SetTrigger("isDead"); //Trigger the death animation
+        
+        GameManager.endOfLevel = true; //Set end of level to true
     }
 
     float CheckJump()
@@ -162,18 +198,39 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        //throw new System.NotImplementedException();
+        if(anim.GetCurrentAnimatorStateInfo(0).IsName("Attack01")) return; //If Attack01 animation is already playing, do not trigger again
+
+        if(anim.GetCurrentAnimatorStateInfo(0).IsName("Kick")) return; //If Kick animation is already playing, do not trigger again
+
+        if (weapon) anim.SetTrigger("Attack"); //If weapon is equipped, trigger the attack animation
+
+        else
+        {
+            StartKick(); //If no weapon is equipped, trigger the kick animation
+        }
     }
+
 
     public void OnInteract(InputAction.CallbackContext context)
     {
-        //throw new System.NotImplementedException();
+        if(weapon)
+        {
+            //weapon.Drop(controller); //Drop the weapon if it is equipped   Need to refer to Hisham's script for this
+            weapon = null; //Set the weapon reference to null after dropping
+        }
+
+
     }
 
     public void OnCrouch(InputAction.CallbackContext context)
     {
-        //throw new System.NotImplementedException();
-    }
+        if (canShoot)
+        {
+            shoot.Fire(); //Call the Fire function from the Shoot script when crouch is pressed
+            canShoot = false; //Set canShoot to false to prevent firing again immediately
+            StartCoroutine(HandleProjectileFireRate()); //Start the coroutine to handle the fire rate
+        }
+        }
 
     public void OnJump(InputAction.CallbackContext context)
     {
@@ -200,9 +257,17 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     {
         if (hit.gameObject.CompareTag("Enemy"))
         {
+            if(GameManager.endOfLevel) return;
+    
             Debug.Log("Collided with enemy");
-            Destroy(gameObject);
-            GameManager.endOfLevel = true;
+            Death(); //Call the Death function if collided with an enemy
+        }
+
+        if(hit.collider.CompareTag("Weapon") && weapon == null)
+        {
+            anim.SetBool("hasWeapon", true); //Set the hasWeapon parameter in the animator to true  
+            weapon = hit.collider.GetComponent<WeaponBase>(); //Get the WeaponBase component from the collided weapon
+            weapon.Equip(controller, weaponAttachPoint); //Equip the weapon to the player
 
         }
     }
@@ -211,10 +276,32 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     {
         if(other.CompareTag("Enemy"))
         {
-            Debug.Log("Collided with enemy");
-            Destroy(gameObject);
-            GameManager.endOfLevel = true;
+            if (!GameManager.endOfLevel)
+            {
+                Debug.Log("Collided with enemy");
+                Death(); //Call the Death function if collided with an enemy
+            }
         }
+    }
+
+    public void StartKick()
+    {
+        anim.SetTrigger("Kick"); 
+        StartCoroutine(HandleKickHitbox()); //Start the coroutine to handle the kick hitbox
+    }
+
+    IEnumerator HandleKickHitbox()
+    {
+        yield return new WaitForSeconds(0.1f); // Delay before hitbox becomes active (depends on animation)
+        kickHitBox.SetActive(true);
+        yield return new WaitForSeconds(1f); // Duration of active hitbox
+        kickHitBox.SetActive(false);
+    }
+
+    IEnumerator HandleProjectileFireRate()
+    {
+        yield return new WaitForSeconds(1f); // Delay before the next projectile can be fired
+        canShoot = true; // Allow firing again after the delay
     }
 
     //private void OnCollisionStay(collision collision)   //Collision detection for enemies
