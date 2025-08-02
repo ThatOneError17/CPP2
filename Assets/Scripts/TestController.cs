@@ -38,6 +38,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     [SerializeField] private GameObject kickHitBox; //The point where the kick hitbox will be attached to the player
     WeaponBase weapon = null; //Reference to the weapon attached to the player
 
+    [Header("Health")]
+    [SerializeField] private int maxHealth = 5; //Maximum health of the player
+    [SerializeField] private int health = 5; //Maximum health of the player
+    private bool isInvincible = false; //Whether the player is invincible or not
+
 
     //Gravity and velocity
     private float gravity; // Gravity value for the jump
@@ -107,7 +112,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     void FixedUpdate()  //Runs at framerate of game
     {
-        if (GameManager.endOfLevel)
+        if (GameManager.endOfLevel || GameManager.gameOver)
         {
             return;
         }
@@ -123,6 +128,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
             float timeStep = rotationSpeed * Time.fixedDeltaTime;
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(projectedMoveDirection), timeStep);
 
+        }
+
+        if (health > 5) //Check if health is less than or equal to 0
+        {
+            Death(); //Call the Death function if health is 0
         }
 
     }
@@ -176,7 +186,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         Debug.Log("Player has died");
         anim.SetTrigger("isDead"); //Trigger the death animation
         
-        GameManager.endOfLevel = true; //Set end of level to true
+        GameManager.gameOver = true; //Set end of level to true
     }
 
     float CheckJump()
@@ -258,9 +268,17 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         if (hit.gameObject.CompareTag("Enemy"))
         {
             if(GameManager.endOfLevel) return;
-    
+            
             Debug.Log("Collided with enemy");
-            Death(); //Call the Death function if collided with an enemy
+            if (!isInvincible) //Check if the player is not invincible
+            {
+                HandleInvincibilityFrames(); //Start invincibility frames
+                health--; //Reduce health by 1 when colliding with an enemy
+                Debug.Log("Health: " + health); //Log the current health to the console
+            }
+            
+            
+            
         }
 
         if(hit.collider.CompareTag("Weapon") && weapon == null)
@@ -274,12 +292,17 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Enemy"))
+        if(other.CompareTag("Enemy") && !isInvincible)
         {
-            if (!GameManager.endOfLevel)
+            if (GameManager.endOfLevel) return;
+            
+            Debug.Log("Collided with enemy");
+
+            if (!isInvincible) //Check if the player is not invincible
             {
-                Debug.Log("Collided with enemy");
-                Death(); //Call the Death function if collided with an enemy
+                HandleInvincibilityFrames();
+                health--; //Reduce health by 1 when colliding with an enemy
+                Debug.Log("Health: " + health); //Log the current health to the console
             }
         }
     }
@@ -288,6 +311,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     {
         anim.SetTrigger("Kick"); 
         StartCoroutine(HandleKickHitbox()); //Start the coroutine to handle the kick hitbox
+    }
+
+    public void loseHealth()
+    {
+        health--; //Reduce health by 1 when called
     }
 
     IEnumerator HandleKickHitbox()
@@ -302,6 +330,14 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     {
         yield return new WaitForSeconds(1f); // Delay before the next projectile can be fired
         canShoot = true; // Allow firing again after the delay
+    }
+
+    IEnumerator HandleInvincibilityFrames()
+    {
+        isInvincible = true; // Set invincibility to true
+        // Implement invincibility frames logic here if needed
+        yield return new WaitForSeconds(2f);
+        isInvincible = false; // Set invincibility to false after the duration
     }
 
     //private void OnCollisionStay(collision collision)   //Collision detection for enemies

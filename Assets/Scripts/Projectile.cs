@@ -35,7 +35,7 @@ public class Projectile : MonoBehaviour
             if (player != null)
             {
                 if (GameManager.endOfLevel) return;
-                player.Death();
+                player.loseHealth();
                 Destroy(gameObject);
             }
         }

@@ -14,12 +14,12 @@ public class PowerUpRandomSpawner : MonoBehaviour
         // Catch any exceptions that may occur during the spawning process
         catch (System.Exception e)
         {
-            Debug.LogError("Error spawning power-ups: " + e.Message);
+            //Debug.LogError("Error spawning power-ups: " + e.Message);
         }
 
         finally
         {
-            Debug.Log("Power-up spawning process completed.");
+            //Debug.Log("Power-up spawning process completed.");
         }
     }
 
