@@ -21,6 +21,21 @@ public class PowerUp : MonoBehaviour // Inherit from MonoBehaviour to access Uni
     {
         if (collision.CompareTag("Player"))
         {
+            if (type == PickupType.Health)
+            {
+                collision.GetComponent<TestController>().Heal(); // Heal the player by 20 health points
+                Debug.Log("Player healed by 1 health points");
+            }
+            else if (type == PickupType.Boost)
+            {
+                //collision.GetComponent<TestController>().Boost(); // Apply a speed boost to the player
+                Debug.Log("Player has speed boost");
+            }
+            else if (type == PickupType.LowGravity)
+            {
+                collision.GetComponent<TestController>().lowGravity(); // Apply low gravity effect to the player
+                Debug.Log("Player has low gravity");
+            }
             Destroy(gameObject);
         }
     }

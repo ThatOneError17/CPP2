@@ -6,6 +6,7 @@ public class Ghost : MonoBehaviour
     //Components
     Rigidbody rb;
     Transform playerTransform;
+    CapsuleCollider cc;
     private Shoot shoot;
 
     private bool isSeen = false;
@@ -13,6 +14,12 @@ public class Ghost : MonoBehaviour
     [SerializeField] private float detectionDistance = 20f; //Max distance for line of sight check
     [SerializeField] private float visionThreshold = 0.5f; //Dot product threshold to count as "being looked at"
     [SerializeField] private float rotationSpeed = 5f; //Speed of rotation towards the player
+    
+
+    [Header("Range")]
+    [SerializeField] private Vector3 minBounds;
+    [SerializeField] private Vector3 maxBounds;
+    [SerializeField] private float detectionRange = 5f; //Range at which the ghost can detect the player
 
     //Model Stuff
     [Header("Model Settings")]
@@ -34,6 +41,7 @@ public class Ghost : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         shoot = GetComponent<Shoot>();
+        cc = GetComponent<CapsuleCollider>();
 
         ghostMaterial = ghostModelAlt.material;
         ghostMaterial.SetFloat("Dissolve", 0f);
@@ -59,15 +67,18 @@ public class Ghost : MonoBehaviour
 
         if (!isSeen)
         {
-            MoveTowardPlayer();
-            if (Time.time >= timeSinceLastFire + projectileFireRate)
+            if (Vector3.Distance(transform.position, playerTransform.position) <= detectionRange && IsPlayerWithinBounds())   
             {
-                timeSinceLastFire = Time.time;
-                Debug.Log("Firing projectile");
-                shoot.Fire(); //Fire a projectile
+                MoveTowardPlayer();
+                if (Time.time >= timeSinceLastFire + projectileFireRate)
+                {
+                    timeSinceLastFire = Time.time;
+                    Debug.Log("Firing projectile");
+                    shoot.Fire(); //Fire a projectile
+                }
+                
             }
             ghostModel.SetActive(true); //Makes Ghost visible when not seen
-
 
         }
         else
@@ -102,6 +113,12 @@ public class Ghost : MonoBehaviour
                 }
             }
         }
+    }
+
+    private bool IsPlayerWithinBounds()
+    {
+        Vector3 playerPos = playerTransform.position;
+        return playerPos.x >= minBounds.x && playerPos.x <= maxBounds.x && playerPos.z >= minBounds.z && playerPos.z <= maxBounds.z;
     }
 
     void MoveTowardPlayer()

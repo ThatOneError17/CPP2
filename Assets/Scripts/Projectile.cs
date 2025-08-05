@@ -32,10 +32,11 @@ public class Projectile : MonoBehaviour
         if (type == ProjectileType.Enemy)
         {
             TestController player = collision.gameObject.GetComponent<TestController>();
-            if (player != null)
+            if (player != null && !player.isInvincible)
             {
                 if (GameManager.endOfLevel) return;
                 player.loseHealth();
+                player.StartCoroutine(player.HandleInvincibilityFrames());
                 Destroy(gameObject);
             }
         }

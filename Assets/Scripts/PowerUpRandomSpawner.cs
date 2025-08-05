@@ -4,6 +4,7 @@ public class PowerUpRandomSpawner : MonoBehaviour
 {
 
     public GameObject[] PowerUpPreFabs;
+    [SerializeField] private int item;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -26,8 +27,14 @@ public class PowerUpRandomSpawner : MonoBehaviour
     void spawnPowerUps()
     {
 
-        int rand = Random.Range(0, PowerUpPreFabs.Length);
-        Instantiate(PowerUpPreFabs[rand], transform.position, transform.rotation);
-
+        if (item == -1)
+        {
+            int rand = Random.Range(0, PowerUpPreFabs.Length);
+            Instantiate(PowerUpPreFabs[rand], transform.position, transform.rotation);
+        }
+        else
+        {
+            Instantiate(PowerUpPreFabs[item], transform.position, transform.rotation);
+        }
     }
 }

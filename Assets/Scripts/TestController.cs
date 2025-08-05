@@ -26,7 +26,8 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     [SerializeField] private float maxSpeed = 10.0f; //Speed of the character
     [SerializeField] private float moveAccel = 1f; //Acceleration for movement
     [SerializeField] private float rotationSpeed = 5.0f;
-   
+    [SerializeField] private float GravityChange;
+
 
     //Jump variables
     [Header("Jump Settings")]
@@ -41,7 +42,8 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     [Header("Health")]
     [SerializeField] private int maxHealth = 5; //Maximum health of the player
     [SerializeField] private int health = 5; //Maximum health of the player
-    private bool isInvincible = false; //Whether the player is invincible or not
+    [SerializeField] private float invincibilityDuration = 1f; //Invincibility duration after taking damage
+    public bool isInvincible = false; //Whether the player is invincible or not
 
 
     //Gravity and velocity
@@ -130,7 +132,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
         }
 
-        if (health > 5) //Check if health is less than or equal to 0
+        if (health <= 0) //Check if health is less than or equal to 0
         {
             Death(); //Call the Death function if health is 0
         }
@@ -269,11 +271,12 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         {
             if(GameManager.endOfLevel) return;
             
-            Debug.Log("Collided with enemy");
+            
             if (!isInvincible) //Check if the player is not invincible
             {
-                HandleInvincibilityFrames(); //Start invincibility frames
-                health--; //Reduce health by 1 when colliding with an enemy
+                Debug.Log("Collided with enemy and about to lose health");
+                loseHealth(); //Call the loseHealth function to reduce health
+                StartCoroutine(HandleInvincibilityFrames());
                 Debug.Log("Health: " + health); //Log the current health to the console
             }
             
@@ -292,7 +295,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Enemy") && !isInvincible)
+        if(other.CompareTag("Enemy"))
         {
             if (GameManager.endOfLevel) return;
             
@@ -300,8 +303,8 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
             if (!isInvincible) //Check if the player is not invincible
             {
-                HandleInvincibilityFrames();
-                health--; //Reduce health by 1 when colliding with an enemy
+                loseHealth(); //Call the loseHealth function to reduce health
+                StartCoroutine(HandleInvincibilityFrames());
                 Debug.Log("Health: " + health); //Log the current health to the console
             }
         }
@@ -315,29 +318,67 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void loseHealth()
     {
+        
         health--; //Reduce health by 1 when called
     }
 
     IEnumerator HandleKickHitbox()
     {
-        yield return new WaitForSeconds(0.1f); // Delay before hitbox becomes active (depends on animation)
+        yield return new WaitForSeconds(0.1f); //Delay before hitbox becomes active 
         kickHitBox.SetActive(true);
-        yield return new WaitForSeconds(1f); // Duration of active hitbox
+        yield return new WaitForSeconds(1f); //Duration of active hitbox
         kickHitBox.SetActive(false);
     }
 
     IEnumerator HandleProjectileFireRate()
     {
-        yield return new WaitForSeconds(1f); // Delay before the next projectile can be fired
-        canShoot = true; // Allow firing again after the delay
+        yield return new WaitForSeconds(1f); //Delay before the next projectile can be fired
+        canShoot = true; //Allow firing again after the delay
     }
 
-    IEnumerator HandleInvincibilityFrames()
+    public IEnumerator HandleInvincibilityFrames()
     {
-        isInvincible = true; // Set invincibility to true
-        // Implement invincibility frames logic here if needed
-        yield return new WaitForSeconds(2f);
-        isInvincible = false; // Set invincibility to false after the duration
+        isInvincible = true; //Set invincibility to true when health is lost
+        yield return new WaitForSeconds(invincibilityDuration);
+        isInvincible = false; //Set invincibility to false after the duration
+    }
+
+    public int Heal()
+    {
+        if (health < maxHealth) //Check if health is less than maximum health
+        {
+            health++; //Increase health by 1
+            Debug.Log("Health increased to: " + health); //Log the new health to the console
+        }
+        else
+        {
+            Debug.Log("Health is already at maximum: " + maxHealth); //Log if health is already at maximum
+        }
+        return health; //Return the current health after healing
+    }
+
+    public void lowGravity()
+    {
+        gravity += GravityChange;
+        StartCoroutine(ResetGravityAfterDelay());
+
+    }
+
+    private IEnumerator ResetGravityAfterDelay()
+    {
+        yield return new WaitForSeconds(10f);
+        gravity = (-2 * jumpHeight) / Mathf.Pow(timeToJumpApex, 2); //Reset gravity to normal value
+        Debug.Log("Gravity reset to normal after 10 seconds.");
+    }
+
+    public int getHealth()
+    {
+        return health; //Return the current health of the player
+    }
+
+    public int getMaxHealth()
+    {
+        return maxHealth; //Return the maximum health of the player
     }
 
     //private void OnCollisionStay(collision collision)   //Collision detection for enemies
