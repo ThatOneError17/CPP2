@@ -43,8 +43,8 @@ public class Ghost : MonoBehaviour
         shoot = GetComponent<Shoot>();
         cc = GetComponent<CapsuleCollider>();
 
-        ghostMaterial = ghostModelAlt.material;
-        ghostMaterial.SetFloat("Dissolve", 0f);
+        //ghostMaterial = ghostModelAlt.material;
+        //ghostMaterial.SetFloat("Dissolve", 0f);
 
     }
 

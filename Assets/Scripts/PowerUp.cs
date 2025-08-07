@@ -8,13 +8,18 @@ public class PowerUp : MonoBehaviour // Inherit from MonoBehaviour to access Uni
         Health,
         Boost,
         LowGravity,
+        Key,
     }
 
     public PickupType type;
 
     private void Update()
     {
-        transform.Rotate(Vector3.up * rotateSpeed * Time.deltaTime); // Rotate the power-up around the Y-axis
+        if (PickupType.Key != type)
+            transform.Rotate(Vector3.up * rotateSpeed * Time.deltaTime); // Rotate the power-up around the Y-axis
+        else
+            transform.Rotate(Vector3.left * rotateSpeed * Time.deltaTime);
+
     }
 
     private void OnTriggerEnter(Collider collision) 
@@ -35,6 +40,11 @@ public class PowerUp : MonoBehaviour // Inherit from MonoBehaviour to access Uni
             {
                 collision.GetComponent<TestController>().lowGravity(); // Apply low gravity effect to the player
                 Debug.Log("Player has low gravity");
+            }
+            else if (type == PickupType.Key)
+            {
+                GameManager.hasKey = true; // Increment the player's key count
+                Debug.Log("Player has a key");
             }
             Destroy(gameObject);
         }

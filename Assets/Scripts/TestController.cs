@@ -181,6 +181,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         {
             Debug.Log(hitInfo.transform.gameObject.name);
         }
+
+        if (!controller.isGrounded)
+        {
+            transform.SetParent(null);
+        }
     }
 
     public void Death() //Function to handle player death
@@ -265,7 +270,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         //throw new System.NotImplementedException();
     }
 
-    private void OnControllerColliderHit(ControllerColliderHit hit) //Collision detection for enemies
+    private void OnControllerColliderHit(ControllerColliderHit hit) //Collision detection for things
     {
         if (hit.gameObject.CompareTag("Enemy"))
         {
@@ -278,18 +283,30 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
                 loseHealth(); //Call the loseHealth function to reduce health
                 StartCoroutine(HandleInvincibilityFrames());
                 Debug.Log("Health: " + health); //Log the current health to the console
-            }
-            
-            
-            
+            }     
         }
 
-        if(hit.collider.CompareTag("Weapon") && weapon == null)
+
+        if (hit.collider.CompareTag("Weapon") && weapon == null)
         {
             anim.SetBool("hasWeapon", true); //Set the hasWeapon parameter in the animator to true  
             weapon = hit.collider.GetComponent<WeaponBase>(); //Get the WeaponBase component from the collided weapon
             weapon.Equip(controller, weaponAttachPoint); //Equip the weapon to the player
 
+        }
+
+        if (hit.collider.CompareTag("KeyDoor"))
+        {
+            if (GameManager.hasKey) //Check if the player has a key
+            {
+                Destroy(hit.collider.gameObject); //Destroy the door if the player has a key
+                GameManager.hasKey = false; //Remove the key from the player
+                Debug.Log("Door opened, key used");
+            }
+            else
+            {
+                Debug.Log("You need a key to open this door!"); //Log message if player does not have a key
+            }
         }
     }
 
@@ -380,6 +397,8 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     {
         return maxHealth; //Return the maximum health of the player
     }
+
+
 
     //private void OnCollisionStay(collision collision)   //Collision detection for enemies
     //{

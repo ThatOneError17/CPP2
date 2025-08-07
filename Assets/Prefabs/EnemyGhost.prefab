@@ -21,7 +21,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4078164782825971974
 Transform:
   m_ObjectHideFlags: 0
@@ -158,7 +158,12 @@ MonoBehaviour:
   detectionDistance: 20
   visionThreshold: 0.5
   rotationSpeed: 5
+  minBounds: {x: 0, y: 0, z: 0}
+  maxBounds: {x: 0, y: 0, z: 0}
+  detectionRange: 5
   ghostModel: {fileID: 8442970510194184059}
+  ghostModelAlt: {fileID: 0}
+  dissolveDuration: 2
   projectileFireRate: 3
 --- !u!114 &6157287188066911919
 MonoBehaviour:

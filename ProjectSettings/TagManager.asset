@@ -9,6 +9,8 @@ TagManager:
   - Projectile
   - Kick
   - Dead
+  - MovingPlatform
+  - KeyDoor
   layers:
   - Default
   - TransparentFX
