@@ -8,6 +8,7 @@ TagManager:
   - Weapon
   - Projectile
   - Kick
+  - Dead
   layers:
   - Default
   - TransparentFX
