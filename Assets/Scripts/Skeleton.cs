@@ -11,7 +11,7 @@ public class Skeleton : MonoBehaviour
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotationSpeed = 5f; //Speed of rotation towards the player
     [SerializeField] private bool isDead = false;
-    private GameObject itemDrop;
+    [SerializeField] private GameObject itemDrop;
 
     [Header("Range")]
     [SerializeField] private Vector3 minBounds;
@@ -59,7 +59,8 @@ public class Skeleton : MonoBehaviour
                     Destroy(gameObject, 0.5f); // Destroy the skeleton after 0.5 seconds
                     if (itemDrop != null)
                     {
-                        GameObject droppedItem = Instantiate(itemDrop, transform.position, Quaternion.identity);
+                        GameObject droppedItem = Instantiate(itemDrop, transform.position + new Vector3(0, 1, 0), Quaternion.Euler(0, 0, 270));
+
                     }
                 }
             }

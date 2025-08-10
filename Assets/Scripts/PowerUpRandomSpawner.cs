@@ -29,8 +29,12 @@ public class PowerUpRandomSpawner : MonoBehaviour
 
         if (item == -1)
         {
+
             int rand = Random.Range(0, PowerUpPreFabs.Length);
-            Instantiate(PowerUpPreFabs[rand], transform.position, transform.rotation);
+            if (rand != 3)
+                Instantiate(PowerUpPreFabs[rand], transform.position, transform.rotation);
+            else
+                Instantiate(PowerUpPreFabs[item], transform.position + new Vector3(0, 1, 0), Quaternion.Euler(0, 0, 270));
         }
         else
         {

@@ -26,7 +26,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     [SerializeField] private float maxSpeed = 10.0f; //Speed of the character
     [SerializeField] private float moveAccel = 1f; //Acceleration for movement
     [SerializeField] private float rotationSpeed = 5.0f;
-    [SerializeField] private float GravityChange;
+    
 
 
     //Jump variables
@@ -44,6 +44,12 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     [SerializeField] private int health = 5; //Maximum health of the player
     [SerializeField] private float invincibilityDuration = 1f; //Invincibility duration after taking damage
     public bool isInvincible = false; //Whether the player is invincible or not
+
+    [Header("Miscellaneous")]
+    [SerializeField] private float gravityPowerUpDuration = 10f; 
+    [SerializeField] private float speedPowerUpDuration = 10f;
+    [SerializeField] private float speedChange = 10f;
+    [SerializeField] private float gravityChange;
 
 
     //Gravity and velocity
@@ -257,7 +263,9 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void OnPrevious(InputAction.CallbackContext context)
     {
-        //throw new System.NotImplementedException();
+        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Wave")) 
+            return;
+        anim.SetTrigger("Wave"); 
     }
 
     public void OnNext(InputAction.CallbackContext context)
@@ -376,16 +384,34 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void lowGravity()
     {
-        gravity += GravityChange;
+        gravity += gravityChange;
         StartCoroutine(ResetGravityAfterDelay());
 
     }
 
+    public void speedBoost()
+    {
+        moveAccel += speedChange; //Increase the current accel
+        maxSpeed += speedChange; //Increase the max speed
+        Debug.Log("Speed boosted to: " + curSpeed); //Log the new speed to the console
+        StartCoroutine(ResetSpeedAfterDelay());
+    }
+
+    private IEnumerator ResetSpeedAfterDelay()
+    {
+        Debug.Log("Coroutine started, waiting " + speedPowerUpDuration + " seconds.");
+        yield return new WaitForSeconds(speedPowerUpDuration);
+        moveAccel -= speedChange; //Reset accel to normal value
+        maxSpeed -= speedChange; //Reset max speed to normal value
+        curSpeed = initSpeed; //Reset current speed to initial speed
+        Debug.Log("Speed reset to normal.");
+    }
+
     private IEnumerator ResetGravityAfterDelay()
     {
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(gravityPowerUpDuration);
         gravity = (-2 * jumpHeight) / Mathf.Pow(timeToJumpApex, 2); //Reset gravity to normal value
-        Debug.Log("Gravity reset to normal after 10 seconds.");
+        Debug.Log("Gravity reset to normal.");
     }
 
     public int getHealth()

@@ -53,17 +53,17 @@ public class Ghost : MonoBehaviour
     {
         CheckIfSeen();
 
-        if (isDissolving && dissolveAmount < 1f)
-        {
-            Debug.Log("Ghost is dissolving. Dissolve amount: " + dissolveAmount);
-            dissolveAmount += Time.deltaTime / dissolveDuration;
-            ghostMaterial.SetFloat("Dissolve", dissolveAmount);
+        //if (isDissolving && dissolveAmount < 1f)
+        //{
+        //    Debug.Log("Ghost is dissolving. Dissolve amount: " + dissolveAmount);
+        //    dissolveAmount += Time.deltaTime / dissolveDuration;
+        //    ghostMaterial.SetFloat("Dissolve", dissolveAmount);
 
-            if (dissolveAmount >= 1f)
-            {
-                isDissolving = false;
-            }
-        }
+        //    if (dissolveAmount >= 1f)
+        //    {
+        //        isDissolving = false;
+        //    }
+        //}
 
         if (!isSeen)
         {
@@ -84,8 +84,8 @@ public class Ghost : MonoBehaviour
         else
         {
             StopMoving();
-            isDissolving = true;
-            Debug.Log("Dissolve triggered!");
+            //isDissolving = true;
+            //Debug.Log("Dissolve triggered!");
             ghostModel.SetActive(false); //Hide the ghost model when seen
         }
 
@@ -137,12 +137,6 @@ public class Ghost : MonoBehaviour
         rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0); //Only stop horizontal movement
     }
 
-    //void SetOpacity(float alpha)    //Used for changing the ghost's opacity
-    //{
-    //    Color newColor = originalColor;
-    //    newColor.a = alpha;
-    //    ghostMaterial.color = newColor;
-    //}
 
     
 }

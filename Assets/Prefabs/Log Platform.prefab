@@ -689,7 +689,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   platform: {fileID: 951822482374324473}
-  speed: 5
+  speed: 3
   destroyDelay: 12
   x: 0
   y: 0

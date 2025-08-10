@@ -33,7 +33,7 @@ public class PowerUp : MonoBehaviour // Inherit from MonoBehaviour to access Uni
             }
             else if (type == PickupType.Boost)
             {
-                //collision.GetComponent<TestController>().Boost(); // Apply a speed boost to the player
+                collision.GetComponent<TestController>().speedBoost();
                 Debug.Log("Player has speed boost");
             }
             else if (type == PickupType.LowGravity)
