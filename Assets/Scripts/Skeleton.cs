@@ -34,7 +34,7 @@ public class Skeleton : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Vector3.Distance(transform.position, playerTransform.position) <= detectionRange && !isDead)
+        if (Vector3.Distance(transform.position, playerTransform.position) <= detectionRange && !isDead && !GameManager.playerDead)
         {
             if (minBounds != null && maxBounds != null && IsPlayerWithinBounds())
                 MoveTowardPlayer();

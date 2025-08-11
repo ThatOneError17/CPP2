@@ -198,7 +198,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     {
         Debug.Log("Player has died");
         anim.SetTrigger("isDead"); //Trigger the death animation
-        
+        GameManager.playerDead = true; //Set player dead to true
         GameManager.gameOver = true; //Set end of level to true
     }
 
@@ -289,7 +289,6 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
             {
                 Debug.Log("Collided with enemy and about to lose health");
                 loseHealth(); //Call the loseHealth function to reduce health
-                StartCoroutine(HandleInvincibilityFrames());
                 Debug.Log("Health: " + health); //Log the current health to the console
             }     
         }
@@ -333,6 +332,21 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
                 Debug.Log("Health: " + health); //Log the current health to the console
             }
         }
+
+        if (other.CompareTag("EnemyWeapon"))
+        {
+            if (GameManager.endOfLevel) return;
+
+            Debug.Log("Collided with enemy weapon");
+
+            if (!isInvincible) //Check if the player is not invincible
+            {
+                loseTwoHealth(); //Call the loseTwoHealth function to reduce health
+                StartCoroutine(HandleInvincibilityFrames());
+                Debug.Log("Health: " + health); //Log the current health to the console
+            }
+        }
+
     }
 
     public void StartKick()
@@ -343,8 +357,15 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void loseHealth()
     {
-        
+        StartCoroutine(HandleInvincibilityFrames());
         health--; //Reduce health by 1 when called
+    }
+
+    public void loseTwoHealth()
+    {
+        StartCoroutine(HandleInvincibilityFrames());
+        health -= 2; //Reduce health by 2 when called
+        if (health < 0) health = 0; //Ensure health does not go below 0
     }
 
     IEnumerator HandleKickHitbox()

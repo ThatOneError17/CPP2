@@ -67,7 +67,7 @@ public class Ghost : MonoBehaviour
 
         if (!isSeen)
         {
-            if (Vector3.Distance(transform.position, playerTransform.position) <= detectionRange && IsPlayerWithinBounds())   
+            if (Vector3.Distance(transform.position, playerTransform.position) <= detectionRange && IsPlayerWithinBounds() && !GameManager.playerDead)   
             {
                 MoveTowardPlayer();
                 if (Time.time >= timeSinceLastFire + projectileFireRate)

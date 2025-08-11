@@ -30,7 +30,7 @@ public class PowerUpRandomSpawner : MonoBehaviour
         if (item == -1)
         {
 
-            int rand = Random.Range(0, PowerUpPreFabs.Length);
+            int rand = Random.Range(0, PowerUpPreFabs.Length - 1);
             if (rand != 3)
                 Instantiate(PowerUpPreFabs[rand], transform.position, transform.rotation);
             else

@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public static bool playerDead = false; //Will change if the player is dead
     public static bool endOfLevel = false;
     public static bool gameOver = false; //Will change if the game is over
     public static bool hasKey = false; //Number of keys the player has collected
@@ -13,7 +14,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (hasKey == true)
+        if (hasKey)
         {
             Debug.Log("You have a key");
         }

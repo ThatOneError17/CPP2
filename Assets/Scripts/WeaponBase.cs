@@ -48,6 +48,10 @@ public class WeaponBase : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (GameManager.playerDead || GameManager.endOfLevel || GameManager.gameOver)
+        {
+            bc.isTrigger = false;
+            rb.isKinematic = false;
+        }
     }
 }

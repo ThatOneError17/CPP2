@@ -63,6 +63,7 @@ public class CanvasManager : MonoBehaviour
     private void startGame()
     {
         SceneManager.LoadScene("Game");
+        GameManager.playerDead = false; //Reset the player dead state
         endLevelCanvas.SetActive(false);
         gameOverCanvas.SetActive(false);
         GameManager.endOfLevel = false; //Reset the end of level state

@@ -11,6 +11,8 @@ TagManager:
   - Dead
   - MovingPlatform
   - KeyDoor
+  - NPC
+  - EnemyWeapon
   layers:
   - Default
   - TransparentFX
