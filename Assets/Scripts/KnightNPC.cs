@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -42,6 +43,81 @@ public class KnightNPC : MonoBehaviour
     public Transform[] patrolPoints;
     public int patrolIndex = 0;
     public float distanceThreshold = 0.2f;
+    public int enemyID;
+
+    public void SaveGamePrepare()
+    {
+        //Create enemy save data
+        LoadSaveManager.GameStateData.DataEnemy dataEnemy = new LoadSaveManager.GameStateData.DataEnemy();
+
+        //Transform data
+        //Position data
+        dataEnemy.transform.posX = transform.position.x;
+        dataEnemy.transform.posY = transform.position.y;
+        dataEnemy.transform.posZ = transform.position.z;
+        //Rotation data
+        dataEnemy.transform.rotX = transform.rotation.eulerAngles.x;
+        dataEnemy.transform.rotY = transform.rotation.eulerAngles.y;
+        dataEnemy.transform.rotZ = transform.rotation.eulerAngles.z;
+        //Scale data
+        dataEnemy.transform.scaleX = transform.localScale.x;
+        dataEnemy.transform.scaleY = transform.localScale.y;
+        dataEnemy.transform.scaleZ = transform.localScale.z;
+
+        //Health data
+        dataEnemy.health = currentHealth;
+
+        //Enemy ID
+        dataEnemy.enemyID = enemyID;
+
+        //Add enemy data to the game state
+        GameManager.StateManager.gameState.enemies.Add(dataEnemy);
+
+    }
+
+    public void LoadGameComplete()
+    {
+        //Cycle through all enemies in the saved game data to find the matching ID
+        List<LoadSaveManager.GameStateData.DataEnemy> enemies = GameManager.StateManager.gameState.enemies;
+
+        //Reference to this enemy
+        LoadSaveManager.GameStateData.DataEnemy dataEnemy = null;
+
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            if (enemies[i].enemyID == enemyID)
+            {
+                dataEnemy = enemies[i];
+                break;
+            }
+        }
+
+        //If no matching enemy found
+        if (dataEnemy == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        //Enemy ID
+        enemyID = dataEnemy.enemyID;
+        //Health data
+        currentHealth = dataEnemy.health;
+
+        //Transform data
+        //Position data
+        Vector3 pos = new Vector3(dataEnemy.transform.posX, dataEnemy.transform.posY, dataEnemy.transform.posZ);
+        transform.position = pos;
+        //Rotation data
+        Vector3 rot = new Vector3(dataEnemy.transform.rotX, dataEnemy.transform.rotY, dataEnemy.transform.rotZ);
+        transform.rotation = Quaternion.Euler(rot);
+        //Scale data
+        Vector3 scale = new Vector3(dataEnemy.transform.scaleX, dataEnemy.transform.scaleY, dataEnemy.transform.scaleZ);
+        transform.localScale = scale;
+
+        enemies.Remove(dataEnemy); //Remove this enemy from the list so it is not loaded again
+    }
+
     void Start()
     {
         //rb = GetComponent<Rigidbody>();

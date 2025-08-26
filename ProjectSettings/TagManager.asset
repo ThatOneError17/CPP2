@@ -13,6 +13,7 @@ TagManager:
   - KeyDoor
   - NPC
   - EnemyWeapon
+  - Canvas
   layers:
   - Default
   - TransparentFX

@@ -78,6 +78,49 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         input.Disable();
     }
 
+    public void SaveGamePrepare()
+    {
+        //Get player data
+        LoadSaveManager.GameStateData.DataPlayer playerData = GameManager.StateManager.gameState.player;
+
+        //Fill in player data for save
+        //Transform data
+        playerData.transform.posX = transform.position.x;
+        playerData.transform.posY = transform.position.y;
+        playerData.transform.posZ = transform.position.z;
+        playerData.transform.rotX = transform.rotation.eulerAngles.x;
+        playerData.transform.rotY = transform.rotation.eulerAngles.y;
+        playerData.transform.rotZ = transform.rotation.eulerAngles.z;
+        playerData.transform.scaleX = transform.localScale.x;
+        playerData.transform.scaleY = transform.localScale.y;
+        playerData.transform.scaleZ = transform.localScale.z;
+
+        //Health
+        playerData.health = maxHealth;
+
+    }
+
+    public void LoadGameComplete()
+    {
+        //Get player data
+        LoadSaveManager.GameStateData.DataPlayer playerData = GameManager.StateManager.gameState.player;
+        //Set player data from load
+        //Health data
+        health = playerData.health;
+
+        //Transform data
+
+        //Position data
+        Vector3 pos = new Vector3(playerData.transform.posX, playerData.transform.posY, playerData.transform.posZ);
+        transform.position = pos;
+        //Rotation data
+        Vector3 rot = new Vector3(playerData.transform.rotX, playerData.transform.rotY, playerData.transform.rotZ);
+        transform.rotation = Quaternion.Euler(rot);
+        //Scale data
+        Vector3 scale = new Vector3(playerData.transform.scaleX, playerData.transform.scaleY, playerData.transform.scaleZ);
+        transform.localScale = scale;
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -175,6 +218,22 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     void Update()
     {
+
+        if (Input.GetKeyDown(KeyCode.P) && !GameManager.playerDead)
+        {
+            if (GameManager.isPaused)
+            {
+                GameManager.isPaused = false;
+                Time.timeScale = 1f; // Resume the game by setting time scale to 1
+            }
+            else
+            {
+                GameManager.isPaused = true;
+                Time.timeScale = 0f; // Pause the game by setting time scale to 0
+            }
+
+        }
+
         float speedRatio = curSpeed / maxSpeed; //Calculate speed ratio for animation
         if (direction == Vector2.zero) speedRatio = 0.0f; //If no input, set speed ratio to 0
         anim.SetFloat("curSpeed", speedRatio); //Set the speed parameter in the animator
@@ -192,6 +251,8 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         {
             transform.SetParent(null);
         }
+
+        
     }
 
     public void Death() //Function to handle player death
@@ -210,6 +271,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     //Interface for inputs
     public void OnMove(InputAction.CallbackContext context)
     {
+        if (GameManager.isPaused) return;
         if (context.performed) direction = context.ReadValue<Vector2>(); //On input performed, read the value of the input
         if (context.canceled) direction = Vector2.zero;    //On input canceled, set the direction to zero
     }
@@ -221,12 +283,22 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        if(anim.GetCurrentAnimatorStateInfo(0).IsName("Attack01")) return; //If Attack01 animation is already playing, do not trigger again
+        if (GameManager.isPaused) return;
+        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Attack01")) return; //If Attack01 animation is already playing, do not trigger again
 
         if(anim.GetCurrentAnimatorStateInfo(0).IsName("Kick")) return; //If Kick animation is already playing, do not trigger again
 
-        if (weapon) anim.SetTrigger("Attack"); //If weapon is equipped, trigger the attack animation
-
+        if (weapon)
+        {
+            if (weapon.isHeavyWeapon) //Check if the weapon is a heavy weapon
+            {
+                anim.SetTrigger("HeavyAttack"); //Trigger the heavy attack animation
+                StartCoroutine(HandleHeavyAttackTriggerReset()); //Start the coroutine to reset the heavy attack trigger
+            }
+            else
+                anim.SetTrigger("Attack"); //If weapon is equipped, trigger the attack animation
+            
+        }
         else
         {
             StartKick(); //If no weapon is equipped, trigger the kick animation
@@ -238,8 +310,9 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     {
         if(weapon)
         {
-            //weapon.Drop(controller); //Drop the weapon if it is equipped   Need to refer to Hisham's script for this
+            weapon.Drop(controller); //Drop the weapon if it is equipped   Need to refer to Hisham's script for this
             weapon = null; //Set the weapon reference to null after dropping
+            weapon.isHeavyWeapon = false; //Reset the heavy weapon status
         }
 
 
@@ -247,6 +320,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void OnCrouch(InputAction.CallbackContext context)
     {
+        if (GameManager.isPaused) return;
         if (canShoot)
         {
             shoot.Fire(); //Call the Fire function from the Shoot script when crouch is pressed
@@ -257,6 +331,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void OnJump(InputAction.CallbackContext context)
     {
+        if (GameManager.isPaused) return;
         if (context.started) jumpPressed = true;
         if (context.canceled) jumpPressed = false;
     }
@@ -380,6 +455,12 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     {
         yield return new WaitForSeconds(1f); //Delay before the next projectile can be fired
         canShoot = true; //Allow firing again after the delay
+    }
+
+    IEnumerator HandleHeavyAttackTriggerReset()
+    {
+        yield return new WaitForSeconds(1f); //Delay before resetting the heavy attack trigger
+        anim.ResetTrigger("HeavyAttack"); //Reset the heavy attack trigger
     }
 
     public IEnumerator HandleInvincibilityFrames()

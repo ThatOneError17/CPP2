@@ -15,10 +15,14 @@ public class PowerUp : MonoBehaviour // Inherit from MonoBehaviour to access Uni
 
     private void Update()
     {
-        if (PickupType.Key != type)
-            transform.Rotate(Vector3.up * rotateSpeed * Time.deltaTime); // Rotate the power-up around the Y-axis
-        else
+        //if (PickupType.Health == type)
+        //    transform.Rotate(Vector3.right * rotateSpeed * Time.deltaTime); // Rotate the power-up around the Y-axis
+
+        if (PickupType.Key == type)
             transform.Rotate(Vector3.left * rotateSpeed * Time.deltaTime);
+
+        else
+            transform.Rotate(Vector3.up * rotateSpeed * Time.deltaTime);
 
     }
 
