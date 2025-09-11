@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
         Debug.Log(Application.persistentDataPath);
 
         // Call save game functionality
-        StateManager.Save(Application.persistentDataPath + "/SaveGame.xml");
+        StateManager.Save(Application.persistentDataPath + "/GameData.xml");
 
     }
 
@@ -97,7 +97,7 @@ public class GameManager : MonoBehaviour
     public void LoadGame()
     {
         //Call load game functionality
-        StateManager.Load(Application.persistentDataPath + "/SaveGame.xml");
+        StateManager.Load(Application.persistentDataPath + "/GameData.xml");
     }
 
 

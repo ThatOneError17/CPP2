@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 
+
 public class LoadSaveManager : MonoBehaviour
 {
+    public static string key = "this_is_a_secret"; //Encryption key for saving/loading data
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void Init()
     {
@@ -56,12 +60,21 @@ public class LoadSaveManager : MonoBehaviour
     {
         // Save game data
         XmlSerializer serializer = new XmlSerializer(typeof(GameStateData));  //Serialize the data to XML
-        FileStream stream = new FileStream(fileName, FileMode.Create);  //Save to a file named GameData.xml
-        serializer.Serialize(stream, gameState);    //Takes gameState and writes it to the file
+        MemoryStream memoryStream = new MemoryStream();  //Need to save like this for encryption later
+        serializer.Serialize(memoryStream, gameState);    //Takes gameState and writes it to the file
+
+        byte[] encryptedData = Encrypt(memoryStream.ToArray(), key);
+
+        FileStream stream = new FileStream(fileName, FileMode.Create);
+        stream.Write(encryptedData, 0, encryptedData.Length);
 
         stream.Flush();
         stream.Close();
         stream.Dispose();
+
+        memoryStream.Flush();
+        memoryStream.Close();
+        memoryStream.Dispose();
         Debug.Log("Game Saved");
 
     }
@@ -78,7 +91,9 @@ public class LoadSaveManager : MonoBehaviour
         //Load game data
         XmlSerializer serializer = new XmlSerializer(typeof(GameStateData)); //Deserialize the data from XML
         FileStream stream = new FileStream(fileName, FileMode.Open); //Open the file named GameData.xml
-        gameState = serializer.Deserialize(stream) as GameStateData; //Read the file and store it in gameState
+        byte[] encryptedData = new byte[stream.Length]; //Create a byte array to hold the encrypted data
+        stream.Read(encryptedData, 0, encryptedData.Length); //Read the file into the byte array
+       
 
         
 
@@ -86,5 +101,52 @@ public class LoadSaveManager : MonoBehaviour
         stream.Close();
         stream.Dispose();
 
+        // Decrypt back into raw XML data
+        byte[] decryptedData = Decrypt(encryptedData, key);
+
+        // Deserialize back into GameState
+        MemoryStream memoryStream = new MemoryStream(decryptedData);
+        gameState = serializer.Deserialize(memoryStream) as GameStateData;
+
+        memoryStream.Flush();
+        memoryStream.Close();
+        memoryStream.Dispose();
+
     }
+
+    private byte[] Encrypt(byte[] data, string key)
+    {
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = Encoding.UTF8.GetBytes(key.PadRight(32).Substring(0, 32));
+            aes.IV = new byte[16]; // static IV for simplicity
+
+            using (MemoryStream ms = new MemoryStream())
+            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+            {
+                cs.Write(data, 0, data.Length);
+                cs.FlushFinalBlock();
+                return ms.ToArray();
+            }
+        }
+    }
+
+    private byte[] Decrypt(byte[] data, string key)
+    {
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = Encoding.UTF8.GetBytes(key.PadRight(32).Substring(0, 32));
+            aes.IV = new byte[16]; // must match Encrypt IV
+
+            using (MemoryStream ms = new MemoryStream())
+            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
+            {
+                cs.Write(data, 0, data.Length);
+                cs.FlushFinalBlock();
+                return ms.ToArray();
+            }
+        }
+    }
+
+
 }

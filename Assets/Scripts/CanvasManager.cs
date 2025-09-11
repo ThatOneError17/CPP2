@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
 using UnityEngine.Rendering;
+using System.Collections;
 
 public class CanvasManager : MonoBehaviour
 {
@@ -21,6 +22,15 @@ public class CanvasManager : MonoBehaviour
     Skeleton[] sRef;
     KnightNPC[] kRef;
 
+    void Awake()
+    {
+        // Reset state when entering the scene
+        GameManager.endOfLevel = false;
+        GameManager.gameOver = false;
+        GameManager.isPaused = false;
+        GameManager.playerDead = false;
+    }
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -32,7 +42,12 @@ public class CanvasManager : MonoBehaviour
         if (loadBtn)
             loadBtn.onClick.AddListener(loadGameButton);
 
+
         cRef = GameObject.FindGameObjectWithTag("Player").GetComponent<TestController>();
+        if (cRef == null)
+        {
+            Debug.LogError("Player with TestController script not found!");
+        }
 
 
 
@@ -103,7 +118,7 @@ public class CanvasManager : MonoBehaviour
 
     private void loadGameButton()
     {
-        LoadGame();
+        LoadGame();    
     }
 
     private void ShowEndCanvas()
@@ -121,6 +136,13 @@ public class CanvasManager : MonoBehaviour
     private void ShowPauseCanvas()
     {
         pauseCanvas.SetActive(true);
+    }
+
+    private void disableAllCanvas()
+    {
+        endLevelCanvas.SetActive(false);
+        gameOverCanvas.SetActive(false);
+        pauseCanvas.SetActive(false);
     }
 
     public void SaveGame()
@@ -150,7 +172,9 @@ public class CanvasManager : MonoBehaviour
         {
             SceneManager.LoadScene("Game");
         }
+        
         GameManager.Instance.LoadGame();
+        
 
         cRef.LoadGameComplete();
         //Load ALL Skeletons

@@ -355,17 +355,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     private void OnControllerColliderHit(ControllerColliderHit hit) //Collision detection for things
     {
-        if (hit.gameObject.CompareTag("Enemy"))
+        if (hit.gameObject.CompareTag("Enemy") && !GameManager.endOfLevel && !isInvincible)
         {
-            if(GameManager.endOfLevel) return;
-            
-            
-            if (!isInvincible) //Check if the player is not invincible
-            {
-                Debug.Log("Collided with enemy and about to lose health");
-                loseHealth(); //Call the loseHealth function to reduce health
-                Debug.Log("Health: " + health); //Log the current health to the console
-            }     
+            Debug.Log("Collided with enemy and about to lose health");
+            loseHealth(); //Call the loseHealth function to reduce health
+            Debug.Log("Health: " + health); //Log the current health to the console
         }
 
 
@@ -391,6 +385,17 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
             }
         }
     }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.CompareTag("Enemy") && !isInvincible && !GameManager.endOfLevel)
+        {
+            Debug.Log("Collided with enemy and about to lose health");
+            loseHealth(); //Call the loseHealth function to reduce health
+            Debug.Log("Health: " + health); //Log the current health to the console
+        }
+    }
+
 
     private void OnTriggerEnter(Collider other)
     {
@@ -526,6 +531,12 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         return maxHealth; //Return the maximum health of the player
     }
 
+    public void setHealth(int newHealth)
+    {
+        health = newHealth; //Set the current health of the player to a new value
+        if (health > maxHealth) health = maxHealth; //Ensure health does not exceed maximum health
+        if (health < 0) health = 0; //Ensure health does not go below 0
+    }
 
 
     //private void OnCollisionStay(collision collision)   //Collision detection for enemies

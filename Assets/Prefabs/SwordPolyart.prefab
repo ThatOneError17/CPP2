@@ -18,15 +18,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b96201848d117da4ca7dc3ade4bd59de, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 101.09
+      value: 296.5159
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b96201848d117da4ca7dc3ade4bd59de, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 100.777
+      value: 100.16987
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b96201848d117da4ca7dc3ade4bd59de, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 110.9
+      value: 39.962112
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b96201848d117da4ca7dc3ade4bd59de, type: 3}
       propertyPath: m_LocalRotation.w
@@ -56,6 +56,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: b96201848d117da4ca7dc3ade4bd59de, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 20643e8da2df83145b46f98cee0a3540, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -122,7 +126,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!114 &6848446210996259381
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -136,4 +140,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   localPositionValue: {x: 0, y: 0, z: 0}
-  localRotationValue: {x: 180, y: 0, z: 0}
+  localRotationValue: {x: 0, y: 0, z: 0}
+  isHeavyWeapon: 0
+  weaponStats:
+    damage: 0
+    range: 0
+    attackSpeed: 0
