@@ -5,9 +5,12 @@ using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
 using UnityEngine.Rendering;
 using System.Collections;
+using UnityEngine.Audio;
 
 public class CanvasManager : MonoBehaviour
 {
+    public AudioMixer mixer;
+
     [Header("Buttons")]
     public Button quitBtn;
     public Button playBtn;
@@ -17,6 +20,16 @@ public class CanvasManager : MonoBehaviour
     public GameObject endLevelCanvas;
     public GameObject gameOverCanvas;
     public GameObject pauseCanvas;
+    public GameObject audioCanvas;
+    public GameObject levelFinishCanvas;
+
+    [Header("Sliders")]
+    public Slider musicVolSlider;
+    public Slider sfxVolSlider;
+
+    [Header("Text")]
+    public TMP_Text musicVolSliderText;
+    public TMP_Text sfxVolSliderText;
 
     TestController cRef;
     Skeleton[] sRef;
@@ -29,6 +42,7 @@ public class CanvasManager : MonoBehaviour
         GameManager.gameOver = false;
         GameManager.isPaused = false;
         GameManager.playerDead = false;
+        GameManager.levelFinish = false;
     }
 
 
@@ -44,9 +58,21 @@ public class CanvasManager : MonoBehaviour
 
 
         cRef = GameObject.FindGameObjectWithTag("Player").GetComponent<TestController>();
-        if (cRef == null)
+        string startSceneName = SceneManager.GetActiveScene().name;
+        if (cRef == null && startSceneName == "Game")
         {
             Debug.LogError("Player with TestController script not found!");
+        }
+
+        if (musicVolSlider)
+        {
+            SetupSliderInformation(musicVolSlider, musicVolSliderText, "MusicVol");
+            OnSliderValueChanged(musicVolSlider.value, musicVolSlider, musicVolSliderText, "MusicVol"); // Initialize the text with the current value
+        }
+        if (sfxVolSlider)
+        {
+            SetupSliderInformation(sfxVolSlider, sfxVolSliderText, "SFXVol");
+            OnSliderValueChanged(sfxVolSlider.value, sfxVolSlider, sfxVolSliderText, "SFXVol"); // Initialize the text with the current value
         }
 
 
@@ -72,13 +98,21 @@ public class CanvasManager : MonoBehaviour
         {
             ShowEndCanvas();
             ShowPauseCanvas();
+            ShowAudioCanvas();
         }
 
-        if (currentSceneName == "Game" && !GameManager.isPaused && !GameManager.endOfLevel && !GameManager.gameOver)
+        if (currentSceneName == "Game" && !GameManager.isPaused && !GameManager.endOfLevel && !GameManager.gameOver && !GameManager.levelFinish)
         {
             endLevelCanvas.SetActive(false);
             pauseCanvas.SetActive(false);
             gameOverCanvas.SetActive(false);
+            audioCanvas.SetActive(false);
+            levelFinishCanvas.SetActive(false);
+        }
+
+        if (GameManager.levelFinish)
+        {
+            ShowLevelFinishCanvas();
         }
     }
 
@@ -110,10 +144,12 @@ public class CanvasManager : MonoBehaviour
         endLevelCanvas.SetActive(false);
         gameOverCanvas.SetActive(false);
         pauseCanvas.SetActive(false);
+        audioCanvas.SetActive(false);
 
         GameManager.endOfLevel = false; //Reset the end of level state
         GameManager.gameOver = false; //Reset the game over state
         GameManager.isPaused = false; //Reset the pause state
+        GameManager.levelFinish = false;
     }
 
     private void loadGameButton()
@@ -138,11 +174,23 @@ public class CanvasManager : MonoBehaviour
         pauseCanvas.SetActive(true);
     }
 
+    private void ShowAudioCanvas()
+    {
+        audioCanvas.SetActive(true);
+    }
+
+    private void ShowLevelFinishCanvas()
+    {
+        levelFinishCanvas.SetActive(true);
+    }
+
     private void disableAllCanvas()
     {
         endLevelCanvas.SetActive(false);
         gameOverCanvas.SetActive(false);
         pauseCanvas.SetActive(false);
+        audioCanvas.SetActive(false);
+        levelFinishCanvas.SetActive(false);
     }
 
     public void SaveGame()
@@ -190,5 +238,28 @@ public class CanvasManager : MonoBehaviour
         {
             k.LoadGameComplete();
         }
+    }
+
+    private void SetupSliderInformation(Slider slider, TMP_Text sliderText, string mixerParameterName)
+    {
+        slider.onValueChanged.AddListener((value) => OnSliderValueChanged(value, slider, sliderText, mixerParameterName));
+
+    }
+
+    private void OnSliderValueChanged(float value, Slider slider, TMP_Text sliderText, string mixerParameterName)
+    {
+
+        if (value == 0)
+        {
+            value = -80; //Minimum decibel value to represent silence
+        }
+
+        else
+        {
+            value = Mathf.Log10(slider.value) * 20; //Convert to decibels
+        }
+
+        sliderText.text = (value == -80) ? "0%" : $"{(int)(slider.value * 100)}%";
+        mixer.SetFloat(mixerParameterName, value);
     }
 }

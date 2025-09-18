@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     public static bool gameOver = false; //Will change if the game is over
     public static bool hasKey = false; //IF player has a key
     public static bool isPaused = false; //Is the game paused
+    public static bool levelFinish = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public static GameManager Instance

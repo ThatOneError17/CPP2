@@ -42,6 +42,8 @@ public class LoadSaveManager : MonoBehaviour
             public DataTransform transform = new DataTransform();
             public int enemyID;
             public int health;
+
+            public string enemyType; // Type of enemy (e.g., "Skeleton", "Knight")
         }
 
         public class DataPlayer

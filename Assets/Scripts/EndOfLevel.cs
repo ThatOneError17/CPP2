@@ -1,7 +1,11 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EndOfLevel : MonoBehaviour
 {
+
+    public AudioClip levelCompleteSound;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -18,7 +22,15 @@ public class EndOfLevel : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Player"))
         {
-            GameManager.endOfLevel = true;
+            AudioSource.PlayClipAtPoint(levelCompleteSound, transform.position);
+            GameManager.levelFinish = true;
+            StartCoroutine(TimeUntilExit());
         }
+    }
+
+    private IEnumerator TimeUntilExit()
+    {
+        yield return new WaitForSeconds(6f);
+        SceneManager.LoadScene("MainMenu");
     }
 }

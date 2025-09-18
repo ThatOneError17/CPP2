@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2850325123407063830}
   - component: {fileID: 1918297883825408765}
+  - component: {fileID: 3627863969803577648}
   m_Layer: 0
   m_Name: Power-Up Spawner
   m_TagString: Untagged
@@ -49,4 +50,27 @@ MonoBehaviour:
   - {fileID: 7757183238958853835, guid: 9d8eccf2449c2de4da4e2a7cac8f2603, type: 3}
   - {fileID: 2938074228047531152, guid: db2f6aff1f226df42a6b0f4a69e10186, type: 3}
   - {fileID: 2748157279103229784, guid: 0661a82bffcbd5540bffb46e8463cad8, type: 3}
-  item: 0
+  item: 2
+  respawn: 1
+  respawnTime: 10
+--- !u!65 &3627863969803577648
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6650597459315084182}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}

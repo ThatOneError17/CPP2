@@ -8,6 +8,7 @@ public class Ghost : MonoBehaviour
     Transform playerTransform;
     CapsuleCollider cc;
     private Shoot shoot;
+    public AudioClip pop;
 
     private bool isSeen = false;
     [SerializeField] private float moveSpeed = 5f;
@@ -75,6 +76,7 @@ public class Ghost : MonoBehaviour
                     timeSinceLastFire = Time.time;
                     Debug.Log("Firing projectile");
                     shoot.Fire(); //Fire a projectile
+                    AudioSource.PlayClipAtPoint(pop, transform.position);
                 }
                 
             }

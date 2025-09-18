@@ -14,6 +14,12 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     Camera mainCamera;
     Animator anim;
 
+    [Header("Audio Clips")]
+    public AudioClip jump;
+    public AudioClip death;
+    public AudioClip key;
+    public AudioClip hit;
+
     //Movement variables
     Vector2 direction;
     Vector3 velocity;
@@ -50,14 +56,16 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     [SerializeField] private float speedPowerUpDuration = 10f;
     [SerializeField] private float speedChange = 10f;
     [SerializeField] private float gravityChange;
+    private bool lowGravityActive = false;
 
 
     //Gravity and velocity
     private float gravity; // Gravity value for the jump
     private float jumpVelocity; // Velocity when jumping
     bool jumpPressed = false; // Whether the jump button is pressed
+    private Coroutine gravityRoutine;
 
-    bool canShoot = true; // Whether the player can shoot projectiles
+    [SerializeField] bool canShoot = true; // Whether the player can shoot projectiles
 
     //For shooting projectiles
     private Shoot shoot;
@@ -163,7 +171,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     void FixedUpdate()  //Runs at framerate of game
     {
-        if (GameManager.endOfLevel || GameManager.gameOver)
+        if (GameManager.endOfLevel || GameManager.gameOver || GameManager.levelFinish)
         {
             return;
         }
@@ -219,7 +227,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     void Update()
     {
 
-        if (Input.GetKeyDown(KeyCode.P) && !GameManager.playerDead)
+        if (Input.GetKeyDown(KeyCode.Escape) && !GameManager.playerDead && !GameManager.levelFinish)
         {
             if (GameManager.isPaused)
             {
@@ -232,6 +240,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
                 Time.timeScale = 0f; // Pause the game by setting time scale to 0
             }
 
+        }
+
+        if (!GameManager.isPaused && controller.isGrounded && jumpPressed)
+        {
+            GetComponent<AudioSource>().PlayOneShot(jump); //Play jump sound effect
         }
 
         float speedRatio = curSpeed / maxSpeed; //Calculate speed ratio for animation
@@ -258,6 +271,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     public void Death() //Function to handle player death
     {
         Debug.Log("Player has died");
+        GetComponent<AudioSource>().PlayOneShot(death); //Play death sound effect
         anim.SetTrigger("isDead"); //Trigger the death animation
         GameManager.playerDead = true; //Set player dead to true
         GameManager.gameOver = true; //Set end of level to true
@@ -271,7 +285,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     //Interface for inputs
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (GameManager.isPaused) return;
+        if (GameManager.isPaused || GameManager.playerDead || GameManager.levelFinish) return;
         if (context.performed) direction = context.ReadValue<Vector2>(); //On input performed, read the value of the input
         if (context.canceled) direction = Vector2.zero;    //On input canceled, set the direction to zero
     }
@@ -283,7 +297,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        if (GameManager.isPaused) return;
+        if (GameManager.isPaused || GameManager.playerDead || GameManager.levelFinish) return;
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Attack01")) return; //If Attack01 animation is already playing, do not trigger again
 
         if(anim.GetCurrentAnimatorStateInfo(0).IsName("Kick")) return; //If Kick animation is already playing, do not trigger again
@@ -320,13 +334,13 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void OnCrouch(InputAction.CallbackContext context)
     {
-        if (GameManager.isPaused) return;
+        if (GameManager.isPaused || GameManager.playerDead || GameManager.levelFinish) return;
         if (canShoot)
         {
             shoot.Fire(); //Call the Fire function from the Shoot script when crouch is pressed
             canShoot = false; //Set canShoot to false to prevent firing again immediately
             StartCoroutine(HandleProjectileFireRate()); //Start the coroutine to handle the fire rate
-        }
+        }   //Scrapped because I didn't like the way it worked
         }
 
     public void OnJump(InputAction.CallbackContext context)
@@ -375,6 +389,7 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
         {
             if (GameManager.hasKey) //Check if the player has a key
             {
+                GetComponent<AudioSource>().PlayOneShot(key); //Play key sound effect
                 Destroy(hit.collider.gameObject); //Destroy the door if the player has a key
                 GameManager.hasKey = false; //Remove the key from the player
                 Debug.Log("Door opened, key used");
@@ -427,6 +442,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
             }
         }
 
+        if (other.CompareTag("LevelEnd"))
+        {
+            curSpeed = 0; //Stop player movement
+        }
+
     }
 
     public void StartKick()
@@ -438,12 +458,14 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     public void loseHealth()
     {
         StartCoroutine(HandleInvincibilityFrames());
+        GetComponent<AudioSource>().PlayOneShot(hit); //Play hit sound effect
         health--; //Reduce health by 1 when called
     }
 
     public void loseTwoHealth()
     {
         StartCoroutine(HandleInvincibilityFrames());
+        GetComponent<AudioSource>().PlayOneShot(hit); //Play hit sound effect
         health -= 2; //Reduce health by 2 when called
         if (health < 0) health = 0; //Ensure health does not go below 0
     }
@@ -491,9 +513,16 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
 
     public void lowGravity()
     {
-        gravity += gravityChange;
-        StartCoroutine(ResetGravityAfterDelay());
-
+        if (!lowGravityActive)
+        {
+            gravity += gravityChange;
+            lowGravityActive = true;
+        }
+        if (gravityRoutine != null)
+        {
+            StopCoroutine(gravityRoutine);
+        }
+        gravityRoutine = StartCoroutine(ResetGravityAfterDelay());
     }
 
     public void speedBoost()
@@ -517,8 +546,11 @@ public class TestController : MonoBehaviour, InputSystem_Actions.IPlayerActions
     private IEnumerator ResetGravityAfterDelay()
     {
         yield return new WaitForSeconds(gravityPowerUpDuration);
+
         gravity = (-2 * jumpHeight) / Mathf.Pow(timeToJumpApex, 2); //Reset gravity to normal value
+        lowGravityActive = false;
         Debug.Log("Gravity reset to normal.");
+        gravityRoutine = null; //clear reference
     }
 
     public int getHealth()

@@ -7,6 +7,7 @@ public class PlatformSpawner : MonoBehaviour
     [SerializeField] private GameObject platformPrefab; // Reference to the platform prefab
     [SerializeField] private float spawnInterval = 12f; // Time interval between spawns
     [SerializeField] private Transform[] spawnPoints;
+    [SerializeField] private Transform[] pathNodes;  //Passes this to the node based moving platform script
     void Start()
     {
         StartCoroutine(SpawnLoop());
@@ -22,7 +23,13 @@ public class PlatformSpawner : MonoBehaviour
         foreach (Transform point in spawnPoints)
         {
             Quaternion prefabRotation = platformPrefab.transform.rotation;
-            Instantiate(platformPrefab, point.position, prefabRotation); // Spawn the platform at the current position and rotation
+            GameObject newPlatform = Instantiate(platformPrefab, point.position, prefabRotation); // Spawn the platform at the current position and rotation
+
+            if (pathNodes.Length > 0)
+            {
+                NodeBasedMovingPlatform platformScript = newPlatform.GetComponent<NodeBasedMovingPlatform>();
+                platformScript.InitializeNodes(pathNodes);
+            }
         }
     }
 

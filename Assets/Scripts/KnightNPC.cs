@@ -24,6 +24,7 @@ public class KnightNPC : MonoBehaviour
     //[Header("Movement")]
     //[SerializeField] private float moveSpeed = 5f;
     //[SerializeField] private float rotationSpeed = 5f; //Speed of rotation towards the player
+    public AudioClip death; //Array of footstep sounds
 
     [Header("Misc.")]
     [SerializeField] private bool isDead = false;
@@ -70,6 +71,9 @@ public class KnightNPC : MonoBehaviour
         //Enemy ID
         dataEnemy.enemyID = enemyID;
 
+        //Enemy type
+        dataEnemy.enemyType = "Knight";
+
         //Add enemy data to the game state
         GameManager.StateManager.gameState.enemies.Add(dataEnemy);
 
@@ -85,7 +89,7 @@ public class KnightNPC : MonoBehaviour
 
         for (int i = 0; i < enemies.Count; i++)
         {
-            if (enemies[i].enemyID == enemyID)
+            if (enemies[i].enemyID == enemyID && enemies[i].enemyType == "Knight")
             {
                 dataEnemy = enemies[i];
                 break;
@@ -285,6 +289,8 @@ public class KnightNPC : MonoBehaviour
 
     void Dead()
     {
+        if (isDead) return; // Prevent multiple death triggers
+        AudioSource.PlayClipAtPoint(death, transform.position);
         anim.SetTrigger("isDead");
         isDead = true;
         swordHitBox.SetActive(false);

@@ -65,6 +65,9 @@ public class Skeleton : MonoBehaviour
         //Enemy ID
         dataEnemy.enemyID = enemyID;
 
+        //Type
+        dataEnemy.enemyType = "Skeleton";
+
         //Add enemy data to the game state
         GameManager.StateManager.gameState.enemies.Add(dataEnemy);
 
@@ -80,7 +83,7 @@ public class Skeleton : MonoBehaviour
 
         for(int i = 0; i < enemies.Count; i++)
         {
-            if (enemies[i].enemyID == enemyID)
+            if (enemies[i].enemyID == enemyID && enemies[i].enemyType == "Skeleton")
             {
                 dataEnemy = enemies[i];
                 break;
@@ -185,13 +188,13 @@ public class Skeleton : MonoBehaviour
         {
             if (!anim.GetCurrentAnimatorStateInfo(0).IsName("isDead"))
             {
-                isDead = Dead();
-                if (isDead)
+                if (!isDead)
                 {
                     anim.SetTrigger("isDead");
                     GetComponent<CapsuleCollider>().enabled = false;
                     navAgent.isStopped = true; // Stop the NavMeshAgent
                     Destroy(gameObject, 0.5f); // Destroy the skeleton after 0.5 seconds
+                    isDead = true;
                     if (itemDrop != null)
                     {
                         GameObject droppedItem = Instantiate(itemDrop, transform.position + new Vector3(0, 1, 0), Quaternion.Euler(0, 0, 270));
@@ -242,11 +245,6 @@ public class Skeleton : MonoBehaviour
         return playerPos.x >= minBounds.x && playerPos.x <= maxBounds.x && playerPos.z >= minBounds.z && playerPos.z <= maxBounds.z;
     }
 
-
-    bool Dead()
-    {
-        return true;
-    }
 
 
 

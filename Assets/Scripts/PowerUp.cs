@@ -12,6 +12,7 @@ public class PowerUp : MonoBehaviour // Inherit from MonoBehaviour to access Uni
     }
 
     public PickupType type;
+    public AudioClip pickupSound; // Sound to play when the power-up is collected
 
     private void Update()
     {
@@ -30,6 +31,7 @@ public class PowerUp : MonoBehaviour // Inherit from MonoBehaviour to access Uni
     {
         if (collision.CompareTag("Player"))
         {
+            AudioSource.PlayClipAtPoint(pickupSound, transform.position); //Play the pickup sound at the power-up's position
             if (type == PickupType.Health)
             {
                 collision.GetComponent<TestController>().Heal(); // Heal the player by 20 health points
